@@ -29,7 +29,7 @@ jobs:
       # Build the Docker image
       - name: Build & Publish
         run: |
-          docker build -t gcr.io/${{ secrets.GCP_PROJECT }}/${{ secrets.GCP_APPLICATION }} .
+          docker build -t gcr.io/${{ secrets.GCP_PROJECT }}/${{ secrets.GCP_APPLICATION }} ./Ms.Invoices/changeInvoiceStatusJob/.
           docker push gcr.io/${{ secrets.GCP_PROJECT }}/${{ secrets.GCP_APPLICATION }}
 
       - name: Setup gcloud beta
@@ -38,7 +38,18 @@ jobs:
       # Deploy the Docker image to the GKE cluster
       - name: Create Job
         run: gcloud beta run jobs create go-job --image=gcr.io/${{ secrets.GCP_PROJECT }}/${{ secrets.GCP_APPLICATION }}
+        continue-on-error: true
           
       - name: Update Job
-        if: always()
         run: gcloud beta run jobs update go-job --image=gcr.io/${{ secrets.GCP_PROJECT }}/${{ secrets.GCP_APPLICATION }}
+
+      - name: Create Scheduled Job
+        if: always()
+        continue-on-error: true
+        run:  |
+          gcloud scheduler jobs create http ${{ secrets.GCP_APPLICATION }}-scheduler \
+            --location us-central1 \
+            --schedule="* * * * *" \
+            --uri="https://us-central1-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${{ secrets.GCP_PROJECT }}/jobs/${{ secrets.GCP_APPLICATION }}:run" \
+            --http-method POST \
+            --oauth-service-account-email ${{ secrets.GCP_PROJECT }}-compute@developer.gserviceaccount.com

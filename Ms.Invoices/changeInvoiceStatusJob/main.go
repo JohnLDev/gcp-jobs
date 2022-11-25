@@ -12,5 +12,6 @@ func main() {
 		fmt.Println(i)
 		time.Sleep(time.Second)
 	}
+	fmt.Println("Changed")
 	os.Exit(0)
 }
