@@ -1,6 +1,6 @@
 
 
-name: ci-golang-workflow
+name: Deploy Cloud Job With Schedule
 on: 
   push:
     branches:
