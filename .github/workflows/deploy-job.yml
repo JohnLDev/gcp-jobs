@@ -47,9 +47,9 @@ jobs:
         if: always()
         continue-on-error: true
         run:  |
-          gcloud beta scheduler jobs create http ${{ secrets.GCP_APPLICATION }}-scheduler \
+          gcloud scheduler jobs create http ${{ secrets.GCP_APPLICATION }}-scheduler \
             --location us-central1 \
             --schedule="* * * * *" \
             --uri="https://us-central1-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${{ secrets.GCP_PROJECT }}/jobs/${{ secrets.GCP_APPLICATION }}:run" \
             --http-method POST \
-            --oauth-service-account-email ${{ secrets.GCP_PROJECT }}-compute@developer.gserviceaccount.com
+            --oauth-service-account-email ${{ secrets.GCP_PROJECT_NUMBER }}-compute@developer.gserviceaccount.com
