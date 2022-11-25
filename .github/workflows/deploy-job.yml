@@ -6,7 +6,7 @@ on:
     branches:
       - main
 jobs:
-  deploy-job:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -25,12 +25,25 @@ jobs:
       - name: Configure Docker
         run: |
           gcloud auth configure-docker
-        
       # Build the Docker image
       - name: Build & Publish
         run: |
-          docker build -t gcr.io/${{ secrets.GCP_PROJECT }}/${{ secrets.GCP_APPLICATION }} ./Ms.Invoices/changeInvoiceStatusJob/.
+          docker build -t gcr.io/${{ secrets.GCP_PROJECT }}/${{ secrets.GCP_APPLICATION }} .
           docker push gcr.io/${{ secrets.GCP_PROJECT }}/${{ secrets.GCP_APPLICATION }}
+        
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      # Setup gcloud CLI
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        
 
       - name: Setup gcloud beta
         run: gcloud config set run/region us-central1 && gcloud components install beta
@@ -53,3 +66,5 @@ jobs:
             --uri="https://us-central1-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${{ secrets.GCP_PROJECT }}/jobs/${{ secrets.GCP_APPLICATION }}:run" \
             --http-method POST \
             --oauth-service-account-email ${{ secrets.GCP_PROJECT_NUMBER }}-compute@developer.gserviceaccount.com
+            
+ 
