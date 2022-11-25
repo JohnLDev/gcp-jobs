@@ -29,16 +29,16 @@ jobs:
       # Build the Docker image
       - name: Build & Publish
         run: |
-          gcloud config set project ${{ secrets.GCP_PROJECT }}
-          gcloud builds submit --tag gcr.io/${{ secrets.GCP_PROJECT }}/${{ secrets.GCP_APPLICATION }}
-          gcloud config set run/region us-central1
+          docker build -t gcr.io/${{ secrets.GCP_PROJECT }}/${{ secrets.GCP_APPLICATION }} .
+          docker push gcr.io/${{ secrets.GCP_PROJECT }}/${{ secrets.GCP_APPLICATION }}
 
       - name: Setup gcloud beta
-        run: gcloud components install beta
+        run: gcloud config set run/region us-central1 && gcloud components install beta
 
       # Deploy the Docker image to the GKE cluster
       - name: Create Job
         run: gcloud beta run jobs create go-job --image=gcr.io/${{ secrets.GCP_PROJECT }}/${{ secrets.GCP_APPLICATION }}
           
       - name: Update Job
+        if: always()
         run: gcloud beta run jobs update go-job --image=gcr.io/${{ secrets.GCP_PROJECT }}/${{ secrets.GCP_APPLICATION }}
